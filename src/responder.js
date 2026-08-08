@@ -11,23 +11,41 @@ const EXPIRY_MAX_MS = 3 * 24 * 60 * 60 * 1000; // hard cap: 3 days
 // ---- matching ----
 
 function matches(responder, event) {
-  if (!responder || responder.status !== 'active') return false;
-  if (responder.expiresAt && Date.now() > responder.expiresAt) return false;
-  if (event.channel !== responder.channelId) return false;
-  if (event.user === OWNER_USER_ID) return false; // never reply to our own posts
-  if (event.bot_id) return false; // never reply to other bots
-  if (event.subtype) return false; // skip edits/deletes/joins/leaves/etc
-  if (responder.mode === 'threads' && !event.thread_ts) return false;
-  if (!event.text) return false;
-  return true;
+  if (!responder || responder.status !== 'active') return 'inactive';
+  if (responder.expiresAt && Date.now() > responder.expiresAt) return 'expired';
+  if (event.channel !== responder.channelId) return 'wrong channel';
+  if (event.user === OWNER_USER_ID) return 'from owner';
+  if (event.bot_id) return 'from bot';
+  if (event.subtype) return `subtype ${event.subtype}`;
+  if (responder.mode === 'threads' && !event.thread_ts) return 'not a thread reply';
+  if (!event.text) return 'no text';
+  return null; // match
 }
 
 function handleMessage(store, event) {
-  for (const responder of store.listResponders()) {
-    if (!matches(responder, event)) continue;
+  const responders = store.listResponders();
+  const matchesHere = responders.filter((r) => r.channelId === event.channel);
+
+  if (responders.length === 0) {
+    console.log(`[msg] ${event.channel} user=${event.user || '?'} subtype=${event.subtype || '-'} bot=${event.bot_id || '-'} — no responders configured`);
+  } else if (matchesHere.length === 0) {
+    console.log(`[msg] ${event.channel} user=${event.user || '?'} subtype=${event.subtype || '-'} — no responder for this conversation`);
+  } else {
+    console.log(`[msg] ${event.channel} user=${event.user || '?'} subtype=${event.subtype || '-'} bot=${event.bot_id || '-'} text="${String(event.text || '').slice(0, 40)}"`);
+  }
+
+  for (const responder of matchesHere) {
+    const reason = matches(responder, event);
+    if (reason) {
+      console.log(`responder ${responder.id}: skipped (${reason})`);
+      continue;
+    }
 
     const replyAt = Date.now() + (Number(responder.delaySec) || 0) * 1000;
-    if (responder.expiresAt && replyAt > responder.expiresAt) continue; // would expire before we reply
+    if (responder.expiresAt && replyAt > responder.expiresAt) {
+      console.log(`responder ${responder.id}: message arrives after expiry, skipping`);
+      continue;
+    }
 
     const pid = `${responder.id}:${event.ts}`;
     const pending = {
@@ -41,7 +59,7 @@ function handleMessage(store, event) {
     store.addPending(pending);
     schedule(store, pending);
     console.log(
-      `responder ${responder.id}: scheduled reply for user ${event.user} at ${new Date(replyAt).toISOString()}`,
+      `responder ${responder.id}: SCHEDULED reply for user ${event.user} at ${new Date(replyAt).toISOString()}`,
     );
   }
 }
