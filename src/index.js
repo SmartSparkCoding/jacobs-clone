@@ -59,7 +59,11 @@ app.event('app_home_opened', async ({ event, client }) => {
 app.action('create_responder', async ({ ack, body, client }) => {
   await ack();
   if (!isOwner(body.user.id)) return;
-  await client.views.open({ trigger_id: body.trigger_id, view: views.responderModal(null) });
+  try {
+    await client.views.open({ trigger_id: body.trigger_id, view: views.responderModal(null) });
+  } catch (err) {
+    console.error('failed to open create modal:', (err.data && err.data.error) || err.message);
+  }
 });
 
 app.action('edit_responder', async ({ ack, body, client }) => {
@@ -67,7 +71,11 @@ app.action('edit_responder', async ({ ack, body, client }) => {
   if (!isOwner(body.user.id)) return;
   const responder = store.getResponder(body.actions[0].value);
   if (!responder) return;
-  await client.views.open({ trigger_id: body.trigger_id, view: views.responderModal(responder) });
+  try {
+    await client.views.open({ trigger_id: body.trigger_id, view: views.responderModal(responder) });
+  } catch (err) {
+    console.error('failed to open edit modal:', (err.data && err.data.error) || err.message);
+  }
 });
 
 app.action('toggle_responder', async ({ ack, body, client }) => {

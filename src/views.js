@@ -182,7 +182,7 @@ function responderModal(existing) {
   const channelElement = {
     type: 'conversations_select',
     action_id: 'channel',
-    filter: { include: ['public_channel', 'private_channel', 'mpim'] },
+    filter: { include: ['public', 'private', 'mpim'] },
     placeholder: { type: 'plain_text', text: 'Pick a channel or group DM to watch' },
   };
   if (isEdit) channelElement.initial_conversation = existing.channelId;
