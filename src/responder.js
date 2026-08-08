@@ -14,7 +14,8 @@ function matches(responder, event) {
   if (!responder || responder.status !== 'active') return 'inactive';
   if (responder.expiresAt && Date.now() > responder.expiresAt) return 'expired';
   if (event.channel !== responder.channelId) return 'wrong channel';
-  if (event.user === OWNER_USER_ID) return 'from owner';
+  if (event.metadata && event.metadata.event_type === 'jacobs_clone_auto_reply') return 'our own reply';
+  if (event.user === OWNER_USER_ID && process.env.ALLOW_SELF_REPLY !== 'true') return 'from owner';
   if (event.bot_id) return 'from bot';
   if (event.subtype) return `subtype ${event.subtype}`;
   if (responder.mode === 'threads' && !event.thread_ts) return 'not a thread reply';
@@ -94,6 +95,7 @@ async function fire(store, pending) {
       link_names: true,
       unfurl_links: true,
       unfurl_media: true,
+      metadata: { event_type: 'jacobs_clone_auto_reply' }, // loop guard
     });
     console.log(`responder ${responder.id}: sent reply ts=${res.ts}`);
   } catch (err) {
