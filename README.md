@@ -8,7 +8,11 @@ A personal Slack app. Open its **Home tab**, create an auto-responder (channel, 
 - **Full Slack formatting** in replies: `*bold*`, `_italic_`, `` `code` ``, `:emoji:`, `<https://link|label>`.
 - **Socket Mode** — no public URL or webhooks needed.
 
-> ⚠️ **Platform limitation:** Slack apps cannot be added to 1:1 DMs *between two people*, so the app can only watch channels the bot is a member of. (It can still watch public + private channels.)
+> ⚠️ **Platform limitation:** Slack apps cannot be added to 1:1 DMs *between two people*, so the app can only watch conversations it's a member of: public/private channels **and group DMs (3+ people)**.
+
+### Replicating a "1:1 DM auto-responder"
+
+Want it to auto-reply to a *specific person* as you? Create a **group DM** with that person (you + them + a third), then add the bot to it (group DM header → *More → Add apps*, or @mention the bot and approve the invite). The bot reads every message there and replies **as you**. It's not hidden — the person will see the bot joined — but functionally it's an auto-responder in your "DM" with them.
 
 ---
 
@@ -46,7 +50,7 @@ Open the app's Home tab in Slack. You'll see "Create auto-responder".
 
 | Setting | Meaning |
 |---|---|
-| **Channel to watch** | Any public/private channel the bot is a member of (add it via the channel's *Details → More → Add apps*). |
+| **Conversation to watch** | Any public/private channel or **group DM (3+ people)** the bot is a member of. Add it via *Details/More → Add apps*, or @mention it in a group DM. |
 | **When to trigger** | *Any message* or *thread replies only*. Replies always land in the same thread when the trigger was a thread reply. |
 | **Wait** | Delay before replying (Immediately → 1 hour). Survives restarts. |
 | **Reply text** | Full Slack markdown (bold, italics, code, emoji, links). |

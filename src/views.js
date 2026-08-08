@@ -65,8 +65,8 @@ function homeView(responders) {
         type: 'mrkdwn',
         text:
           '*The auto-responder that has your back.*\n' +
-          'Set a canned reply, a wait time and an expiry. When someone messages one of ' +
-          'your channels, I wait, then reply *as you*. :robot_face:',
+          'Set a canned reply, a wait time and an expiry. When someone messages a channel ' +
+          'or group DM you watch, I wait, then reply *as you*. :robot_face:',
       },
     },
     {
@@ -182,8 +182,8 @@ function responderModal(existing) {
   const channelElement = {
     type: 'conversations_select',
     action_id: 'channel',
-    filter: { include: ['public_channel', 'private_channel'] },
-    placeholder: { type: 'plain_text', text: 'Pick a channel to watch' },
+    filter: { include: ['public_channel', 'private_channel', 'mpim'] },
+    placeholder: { type: 'plain_text', text: 'Pick a channel or group DM to watch' },
   };
   if (isEdit) channelElement.initial_conversation = existing.channelId;
 
@@ -252,10 +252,10 @@ function responderModal(existing) {
         type: 'input',
         block_id: 'channel_block',
         element: channelElement,
-        label: { type: 'plain_text', text: 'Channel to watch' },
+        label: { type: 'plain_text', text: 'Conversation to watch' },
         hint: {
           type: 'plain_text',
-          text: 'The bot must be a member of the channel. (Slack apps cannot join 1:1 DMs between people — platform limitation.)',
+          text: 'A channel, or a group DM with 3+ people (you, them + the bot). Slack does NOT allow apps in 1:1 DMs between people — group DMs are the way around it.',
         },
       },
       {
